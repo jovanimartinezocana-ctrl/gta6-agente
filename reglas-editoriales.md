@@ -4,7 +4,7 @@
 > El Agente A (publicador diario) lo obedece.
 > Giovani puede editarlo cuando quiera; B lo respeta y construye encima.
 
-**Versión:** 1 (inicial, sin datos todavía)
+**Versión:** 2 (formato ajustado a referencias reales del nicho; sin datos propios aún)
 **Última actualización:** manual, al arrancar
 **Base de datos:** ninguna aún. Las primeras 3 semanas estas reglas son una
 apuesta razonada, no una conclusión. A partir de la semana 4, B las corrige con
@@ -53,15 +53,43 @@ por hora.
 
 ## ESTRUCTURA DEL TEXTO
 
-```
-[GANCHO en una línea, sin signos de exclamación múltiples]
+Formato base, ajustado a lo que demostradamente funciona en páginas de GTA en
+español:
 
-[2-3 líneas de contexto con el dato concreto y la fuente nombrada]
+```
+🚨 [TITULAR EN MAYÚSCULAS, directo, sin signos múltiples]
+
+[Párrafo 1: el hecho concreto. Qué pasó, quién lo dijo.]
+
+[Párrafo 2: el detalle que da contexto. Nombres, fuentes, cifras.]
+
+[Párrafo 3: por qué importa, o el matiz interesante.]
+
+[Cierre de una línea con gancho o reflexión.]
 
 [ETIQUETA: CONFIRMADO / REPORTE / ESPECULACIÓN]
 
-#GTA6 #GTAVI #[2-3 más según el tema]
+#GTA6 #GTAVI #[2-3 más]
 ```
+
+**Longitud: la que pida la noticia.** Un hallazgo con sustancia puede llevar 4 o
+5 párrafos; una confirmación seca va en 2. La regla es que cada párrafo aporte
+algo — en el momento en que empieces a rellenar, ahí se corta.
+
+**Párrafos cortos, separados por línea en blanco.** En celular, un bloque de
+texto corrido no se lee. Dos o tres líneas por párrafo máximo.
+
+**Un emoji al inicio del titular, máximo.** 🚨 para noticias, 🔍 para easter
+eggs, 📖 para lore. No más de uno y nunca en medio del texto.
+
+## IMÁGENES
+
+- **Preferencia: foto del banco oficial.** Rinde más que el enlace.
+- El agente elige de `imagenes/catalogo.json` comparando el tema del post contra
+  las etiquetas de cada imagen.
+- **Si ninguna empata bien, publica como enlace.** Mejor un link post correcto
+  que una foto que no tiene que ver con el texto.
+- No repetir la misma imagen en menos de 10 posts.
 
 ## UMBRAL DE CALIDAD
 
@@ -83,3 +111,6 @@ _El Agente B escribe aquí cada semana qué cambió y con qué evidencia._
 | Fecha | Cambio | Evidencia |
 |---|---|---|
 | — | Versión inicial, sin datos | — |
+| inicio | Longitud libre en vez de 40-90 palabras; formato con titular en mayúsculas y párrafos cortos | Post de referencia del nicho con 8.1k reacciones usaba ese formato |
+| inicio | Foto oficial como formato preferido, enlace como respaldo | Facebook da más alcance a fotos nativas |
+
