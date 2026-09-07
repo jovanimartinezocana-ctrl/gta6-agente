@@ -1,0 +1,16 @@
+{
+  "_que_es_esto": "Registro de imágenes que el agente YA usó. NO es un banco manual: el agente descarga las imágenes solo, de dominios oficiales de Rockstar. Este archivo existe para que no repita la misma foto seguido.",
+  "_lo_llena_el_agente": "No necesitas tocarlo. El Agente A agrega una entrada cada vez que publica con foto.",
+  "_regla": "No repetir una imagen usada en los últimos 10 posts.",
+  "_ejemplo": {
+    "url_origen": "https://media-rockstargames-com.akamaized.net/.../captura.jpg",
+    "temas": ["Jason", "Lucia", "interiores", "tiendas"],
+    "usada_veces": 1,
+    "ultima_vez": "2026-09-01"
+  },
+
+  "usadas": [
+
+  ]
+}
+
