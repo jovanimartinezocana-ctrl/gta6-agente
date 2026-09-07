@@ -26,14 +26,21 @@ Estas no se negocian. Si hay duda, no se publica.
 3. **NADA de criptomonedas ni promociones.** Parte del material filtrado se usó
    para promover una cripto. Cero contenido de ese tipo.
 
-4. **NO re-subir imágenes ni videos de terceros.** Se publica como *link post*:
-   Facebook genera la miniatura automáticamente y acredita a la fuente. Solo se
-   suben archivos si vienen del Newswire oficial de Rockstar.
+4. **SOLO se descargan imágenes de dominios oficiales de Rockstar**, y siempre
+   a través de `scripts/obtener-imagen.sh`, que lo verifica automáticamente.
+   Dominios permitidos: `rockstargames.com`, `www.rockstargames.com`,
+   `media-rockstargames-com.akamaized.net`. Ningún otro, por ninguna razón.
+   Si el script rechaza una imagen, se publica como *link post*. **No se busca
+   una fuente alterna.**
 
-5. **NO inventar información.** Si no hay fuente verificable, no se publica.
+5. **PROHIBIDO poner marca de agua sobre imagen ajena.** No protege de nada y
+   agrega un problema legal encima del que ya había. Si la imagen no es oficial,
+   la solución es no subirla, no marcarla.
+
+6. **NO inventar información.** Si no hay fuente verificable, no se publica.
    Cero "según fuentes internas" sin enlace real.
 
-6. **NO clickbait mentiroso.** Titular llamativo, sí. Titular que promete algo
+7. **NO clickbait mentiroso.** Titular llamativo, sí. Titular que promete algo
    que el artículo no tiene, no. Eso mata el alcance a mediano plazo.
 
 ## 2. ETIQUETADO OBLIGATORIO
@@ -63,8 +70,12 @@ estrictamente una experiencia para un solo jugador. No existe GTA 6 Online aún.
 
 ## 4. FORMATO DE PUBLICACIÓN
 
-- **Siempre link post** (mensaje + URL). Facebook arma la tarjeta con imagen.
-- Longitud del texto: **40 a 90 palabras**. Ni tuit ni ensayo.
+- **Preferir foto** con imagen del banco oficial. Facebook da más alcance a las
+  fotos nativas que a los enlaces.
+- **Enlace como respaldo** cuando ninguna imagen del banco empate.
+- **Longitud libre, según lo que pida la noticia.** Una nota con sustancia puede
+  llevar varios párrafos; una confirmación corta va corta. Sin relleno para
+  alargar ni recortes que dejen fuera lo importante.
 - Máximo 5 hashtags al final. Siempre incluir `#GTA6`.
 - Siempre acreditar la fuente por nombre dentro del texto ("según IGN...").
 - Terminar con una pregunta abierta al público solo en posts de
