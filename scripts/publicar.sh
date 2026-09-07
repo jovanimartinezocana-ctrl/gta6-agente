@@ -1,85 +1,97 @@
 #!/usr/bin/env bash
-# publicar.sh — publica o programa un link post en la página de Facebook
+# publicar.sh — publica en la página de Facebook
 #
-# Uso:
-#   ./publicar.sh "texto del post" "https://url-fuente.com"                      -> publica ya
-#   ./publicar.sh "texto del post" "https://url-fuente.com" "2026-09-01 13:00"   -> programa
+# MODO FOTO (preferido — más alcance):
+#   bash scripts/publicar.sh foto "texto" "imagenes/archivo.jpg" "2026-09-01 13:00"
 #
-# Requiere en el entorno:
-#   FB_PAGE_TOKEN  - token de página de larga duración
-#   FB_PAGE_ID     - ID numérico de la página
+# MODO ENLACE (respaldo — cuando no hay imagen oficial que empate):
+#   bash scripts/publicar.sh enlace "texto" "https://fuente.com" "2026-09-01 13:00"
 #
-# Ambos se configuran en el panel Cloud Environment de la Routine.
+# El cuarto argumento (fecha) es opcional. Sin él publica de inmediato.
+#
+# Requiere en el entorno: FB_PAGE_TOKEN, FB_PAGE_ID
 # NO existe archivo .env en el entorno de nube. No lo busques.
 
 set -euo pipefail
 
 API_VERSION="v25.0"
-MENSAJE="${1:-}"
-ENLACE="${2:-}"
-CUANDO="${3:-}"
+MODO="${1:-}"
+MENSAJE="${2:-}"
+RECURSO="${3:-}"
+CUANDO="${4:-}"
 
-if [[ -z "$MENSAJE" || -z "$ENLACE" ]]; then
-  echo "ERROR: uso -> ./publicar.sh \"mensaje\" \"url\" [\"YYYY-MM-DD HH:MM\"]" >&2
+if [[ -z "$MODO" || -z "$MENSAJE" || -z "$RECURSO" ]]; then
+  echo "ERROR: uso -> bash scripts/publicar.sh {foto|enlace} \"mensaje\" \"recurso\" [\"YYYY-MM-DD HH:MM\"]" >&2
   exit 1
 fi
 
-if [[ -z "${FB_PAGE_TOKEN:-}" ]]; then
-  echo "ERROR: falta FB_PAGE_TOKEN en las variables de entorno." >&2
+if [[ "$MODO" != "foto" && "$MODO" != "enlace" ]]; then
+  echo "ERROR: el primer argumento debe ser 'foto' o 'enlace'. Recibí: '$MODO'" >&2
   exit 1
 fi
 
-if [[ -z "${FB_PAGE_ID:-}" ]]; then
-  echo "ERROR: falta FB_PAGE_ID en las variables de entorno." >&2
-  exit 1
-fi
+for v in FB_PAGE_TOKEN FB_PAGE_ID; do
+  if [[ -z "${!v:-}" ]]; then
+    echo "ERROR: falta $v en las variables de entorno del Cloud Environment." >&2
+    exit 1
+  fi
+done
 
-ENDPOINT="https://graph.facebook.com/${API_VERSION}/${FB_PAGE_ID}/feed"
-
+# --- Resolver programación ---
+TS=""
 if [[ -n "$CUANDO" ]]; then
-  # --- POST PROGRAMADO ---
-  # Facebook exige que el timestamp esté al menos 10 minutos en el futuro.
-  # El límite superior varía segun la documentacion (30 dias / 6 meses):
-  # nos mantenemos muy por debajo, siempre el mismo dia.
   TS=$(date -u -d "$CUANDO America/Mexico_City" +%s 2>/dev/null || true)
-
   if [[ -z "$TS" ]]; then
     echo "ERROR: no pude interpretar la fecha '$CUANDO'. Formato: YYYY-MM-DD HH:MM" >&2
     exit 1
   fi
-
-  AHORA=$(date -u +%s)
-  MARGEN=$(( TS - AHORA ))
-
+  MARGEN=$(( TS - $(date -u +%s) ))
   if (( MARGEN < 900 )); then
-    echo "AVISO: '$CUANDO' está a menos de 15 min (o ya pasó). Publicando de inmediato." >&2
-    CUANDO=""
+    echo "AVISO: '$CUANDO' está a menos de 15 min o ya pasó. Publico de inmediato." >&2
+    TS=""
   fi
 fi
 
-if [[ -n "$CUANDO" ]]; then
-  RESPUESTA=$(curl -sS -X POST "$ENDPOINT" \
-    -d "message=$MENSAJE" \
-    -d "link=$ENLACE" \
-    -d "published=false" \
-    -d "scheduled_publish_time=$TS" \
-    -d "access_token=$FB_PAGE_TOKEN")
-  MODO="programado para $CUANDO (CDMX)"
+# --- Publicar ---
+if [[ "$MODO" == "foto" ]]; then
+
+  if [[ ! -f "$RECURSO" ]]; then
+    echo "ERROR: no existe el archivo de imagen '$RECURSO'." >&2
+    echo "Revisa imagenes/catalogo.json — el nombre debe coincidir exacto." >&2
+    exit 3
+  fi
+
+  ARGS=( -F "caption=$MENSAJE" -F "source=@$RECURSO" -F "access_token=$FB_PAGE_TOKEN" )
+  if [[ -n "$TS" ]]; then
+    ARGS+=( -F "published=false" -F "scheduled_publish_time=$TS" )
+    DESC="foto programada para $CUANDO (CDMX)"
+  else
+    DESC="foto publicada de inmediato"
+  fi
+  RESPUESTA=$(curl -sS -X POST "https://graph.facebook.com/${API_VERSION}/${FB_PAGE_ID}/photos" "${ARGS[@]}")
+
 else
-  RESPUESTA=$(curl -sS -X POST "$ENDPOINT" \
-    -d "message=$MENSAJE" \
-    -d "link=$ENLACE" \
-    -d "access_token=$FB_PAGE_TOKEN")
-  MODO="publicado de inmediato"
+
+  ARGS=( -d "message=$MENSAJE" -d "link=$RECURSO" -d "access_token=$FB_PAGE_TOKEN" )
+  if [[ -n "$TS" ]]; then
+    ARGS+=( -d "published=false" -d "scheduled_publish_time=$TS" )
+    DESC="enlace programado para $CUANDO (CDMX)"
+  else
+    DESC="enlace publicado de inmediato"
+  fi
+  RESPUESTA=$(curl -sS -X POST "https://graph.facebook.com/${API_VERSION}/${FB_PAGE_ID}/feed" "${ARGS[@]}")
+
 fi
 
-# --- Manejo de resultado ---
+# --- Resultado ---
 if echo "$RESPUESTA" | grep -q '"error"'; then
-  echo "FALLO ($MODO):" >&2
+  echo "FALLO ($DESC):" >&2
   echo "$RESPUESTA" >&2
   exit 2
 fi
 
-POST_ID=$(echo "$RESPUESTA" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
-echo "OK — $MODO"
+POST_ID=$(echo "$RESPUESTA" | sed -n 's/.*"post_id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+[[ -z "$POST_ID" ]] && POST_ID=$(echo "$RESPUESTA" | sed -n 's/.*"id"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+
+echo "OK — $DESC"
 echo "post_id: $POST_ID"
