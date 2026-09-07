@@ -19,6 +19,7 @@ Lee, en este orden:
 2. `reglas-editoriales.md` — la estrategia vigente, obedécela
 3. `datos/publicados.json` — todo lo que ya publicaste
 4. `fuentes.md` — de dónde buscar
+5. `imagenes/catalogo.json` — registro de imágenes ya usadas, para no repetir
 
 ## PASO 2 — Rastrear en paralelo
 
@@ -52,31 +53,88 @@ Nunca bajes el estándar para llenar los dos huecos.
 
 Para cada post, en **español latinoamericano neutro**:
 
-- Adapta, no traduzcas literal. El texto debe sonar escrito por un latino, no
-  traducido del inglés.
-- 40 a 90 palabras.
-- Sigue la estructura definida en `reglas-editoriales.md`.
+- Adapta, no traduzcas literal. Debe sonar escrito por un latino que juega GTA,
+  no traducido del inglés.
+- **La longitud la decide la noticia.** Si el hallazgo tiene sustancia para
+  cuatro párrafos, escribe cuatro. Si es una confirmación seca, dos. Lo que no
+  se vale es rellenar para alargar ni recortar algo que importaba.
+- Sigue el formato de `reglas-editoriales.md`: titular en mayúsculas, párrafos
+  cortos separados por línea en blanco, un emoji máximo al inicio.
 - Nombra la fuente dentro del texto.
-- Pon la etiqueta correcta: `CONFIRMADO`, `REPORTE` o `ESPECULACIÓN`.
-- Máximo 5 hashtags, siempre incluye `#GTA6`.
+- Etiqueta: `CONFIRMADO`, `REPORTE` o `ESPECULACIÓN`.
+- Máximo 5 hashtags, siempre `#GTA6`.
 
-Antes de pasar al siguiente paso, **relee cada post y pregúntate**: ¿esto se lee
-como algo que escribió una persona que sabe de GTA, o como una traducción
-automática? Si es lo segundo, reescríbelo.
+Antes de continuar, **relee cada post**: ¿se lee como algo que escribió una
+persona que sabe de GTA, o como traducción automática? Si es lo segundo,
+reescríbelo.
 
-## PASO 6 — Publicar
+## PASO 6 — Conseguir la imagen
 
-Usa `scripts/publicar.sh` para cada post. El token está en la variable de entorno
-`FB_PAGE_TOKEN` del Cloud Environment — **léelo de ahí, no busques ningún archivo
-`.env`, no existe en este entorno.**
+**Buscas la imagen tú mismo, en fuentes oficiales de Rockstar.** No hay banco
+manual que mantener.
+
+### 6.1 De dónde sacarla, en orden de preferencia
+
+1. **Del propio artículo del Newswire** si la noticia viene de ahí. La imagen que
+   acompaña la nota es, por definición, la correcta para esa nota.
+2. **De la galería oficial de medios**: `rockstargames.com/VI/media/screenshots`
+   Ahí hay 99 capturas oficiales de GTA 6, más las de Ultimate Edition y Vintage
+   Vice City. Elige la que empate con el tema del post.
+3. **Del sitio oficial**: `rockstargames.com/VI`
+
+Para elegir, usa el nombre del archivo, el texto alternativo y el contexto de la
+página. Busca coincidencia real de tema: una captura de interiores para un post
+de interiores, no una de paisaje.
+
+### 6.2 Descargarla
+
+**Siempre con el script.** Nunca con `curl` directo:
 
 ```bash
-bash scripts/publicar.sh "texto del post" "https://url-fuente.com" "2026-09-01 13:00"
-bash scripts/publicar.sh "texto del post 2" "https://url-fuente2.com" "2026-09-01 20:00"
+RUTA=$(bash scripts/obtener-imagen.sh "URL_DE_LA_IMAGEN")
 ```
 
-Horarios según `reglas-editoriales.md`. Si un post falla, reintenta **máximo 2
-veces** y luego registra el error y sigue. Nunca publiques en bucle.
+El script rechaza automáticamente cualquier URL que no sea de un dominio oficial
+de Rockstar, cualquier archivo que no sea imagen, y cualquier cosa demasiado
+pequeña (logos, iconos) o demasiado grande.
+
+**Si el script rechaza la imagen, NO busques otra fuente. Publica como enlace.**
+El rechazo es el sistema funcionando, no un obstáculo que rodear.
+
+### 6.3 Registrar en el catálogo
+
+`imagenes/catalogo.json` funciona como memoria de lo ya usado, no como banco
+manual. Después de publicar con foto, agrega o actualiza la entrada:
+
+```json
+{
+  "url_origen": "https://...",
+  "temas": ["Jason", "interiores", "tiendas"],
+  "usada_veces": 1,
+  "ultima_vez": "2026-09-01"
+}
+```
+
+**No repitas una imagen usada en los últimos 10 posts.** Revisa el catálogo antes
+de elegir.
+
+## PASO 6.5 — Publicar
+
+El token está en la variable de entorno `FB_PAGE_TOKEN`. **Léelo de ahí, no
+busques ningún archivo `.env`, no existe en este entorno.**
+
+Con imagen:
+```bash
+bash scripts/publicar.sh foto "texto del post" "$RUTA" "2026-09-01 13:00"
+```
+
+Sin imagen (el script la rechazó, o no encontraste una que empate):
+```bash
+bash scripts/publicar.sh enlace "texto del post" "https://url-fuente.com" "2026-09-01 20:00"
+```
+
+Horarios según `reglas-editoriales.md`. Si falla, reintenta **máximo 2 veces**,
+registra el error y sigue. Nunca publiques en bucle.
 
 ## PASO 7 — Registrar
 
@@ -87,6 +145,8 @@ Agrega a `datos/publicados.json` una entrada por post publicado:
   "fecha": "2026-09-01",
   "hora_programada": "13:00",
   "url_fuente": "https://...",
+  "formato": "foto",
+  "imagen": "t3-jason-lucia-tienda.jpg",
   "titular_es": "...",
   "tema": "easter egg cartel Vice City tráiler 3",
   "pilar": "Eastereggs",
@@ -98,6 +158,9 @@ Agrega a `datos/publicados.json` una entrada por post publicado:
 
 El campo `tema` es el que usarás mañana para detectar repeticiones. Escríbelo
 descriptivo, no genérico.
+
+Si publicaste con foto, actualiza su entrada en `imagenes/catalogo.json`
+(`usada_veces` y `ultima_vez`).
 
 Agrega también una línea a `datos/bitacora.md` con qué encontraste, qué
 descartaste y por qué. El Agente B leerá eso el domingo.
